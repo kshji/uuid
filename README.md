@@ -14,11 +14,11 @@ It can be used for sorting just like SERIAL type keys.
   * [Good bye integers, welcome uuids](https://buildkite.com/blog/goodbye-integers-hello-uuids)
   * [Kvelakur C-language version using SSL Rand -uuidv4](https://gist.github.com/kvelakur/9069c9896577c3040030)
 
-## Ksh shellscript
+## Ksh shellscript uuidv7
 
   * [My ksh shellscript to generate uuidV7](https://github.com/kshji/ksh/blob/master/Sh/uuidv7.sh)
 
-## Bash / Ksh
+## Bash / Ksh uuidv4
 
 ```bash
 # using cmd uuidgen
@@ -34,16 +34,16 @@ uuid=$(openssl rand -hex 16)
 echo ${uuid:0:8}-${uuid:8:4}-4${uuid:12:3}-${uuid:16:4}-${uuid:20:12}
 ```
 
-## Postgresql
+## Postgresql uuidv7
 
   * [My Postgresql function to generate uuidV7](https://github.com/kshji/postgresql.sh)
 
-## Go
+## Go uuidv7
 
   * [My version to generate uuidv7](https://github.com/kshji/go/tree/master/uuid7)
   * [Standalone server to return uuidv7](https://github.com/kshji/go/tree/master/uuidv7server)
 
-## Javascript
+## Javascript uuidv7
 
 Based on the JS versions published by [Fabio Lim](https://gist.github.com/fabiolimace).
 Uuidv4 and uuidv7 are really elegant solutions. Quite easily adaptable to other languages as well.
