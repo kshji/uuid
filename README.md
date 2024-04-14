@@ -36,7 +36,7 @@ echo ${uuid:0:8}-${uuid:8:4}-4${uuid:12:3}-${uuid:16:4}-${uuid:20:12}
 
 ## Postgresql uuidv7
 
-  * [My Postgresql function to generate uuidV7](https://github.com/kshji/postgresql.sh)
+  * [My Postgresql function to generate uuidV7](https://github.com/kshji/postgresql)
 
 ## Go uuidv7
 
