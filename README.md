@@ -76,12 +76,3 @@ console.log(v7());
 
 Look file uuid.js and uuidv7.js more uuid versions. Source [Fabio Lim](https://gist.github.com/fabiolimace).
 
-```javascript
-```
-
-
-```javascript
-```
-
-```javascript
-```
