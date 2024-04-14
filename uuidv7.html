@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Uuidv7</title>
+
+
+
+</head>
+
+<body>
+<h1>UUID v7</h1>
+<p>
+UuidV7 etu muihin uuid-pohjaisiin on mm. se, että alkuosa on aikaleima, jolloin indeksoinnista iloa 
+ja eikä aikaleimaa tarvitse erikseen tallentaa. Voi käyttää lajitteluun ihan kuten SERIAL tyyppisiä avaimia.
+</p>
+<p>
+UuidV7 and other uuid-based ones include, for example, the fact that the prefix is a timestamp, which makes indexing enjoyable and the timestamp does not need to be separately stored. It can be used for sorting just like SERIAL type keys
+</p>
+<ul>
+<li><a href="https://www.ietf.org/archive/id/draft-peabody-dispatch-new-uuid-format-04.html">IETF</a></li>
+<li><a href="https://itnext.io/why-uuid7-is-better-than-uuid4-as-clustered-index-edb02bf70056">Why uuidv7 is better ...</a></li>
+<li><a href="https://buildkite.com/blog/goodbye-integers-hello-uuids">Good bye integers, welcome uuids</a></li>
+</ul>
+
+<h3>Javascript</h3>
+<p>
+Perustuu <a href="https://gist.github.com/fabiolimace">Fabio Liman</a> julkaisemiin JS versioihin.
+uuidv4 ja uuidv7 on todella kauniit ratkaisut. Aika helposti sovitettavissa muihinkin kieliin.
+</p>
+<p>
+Based on the JS versions published by <a href="https://gist.github.com/fabiolimace">Fabio Lima</a>.
+uuidv4 and uuidv7 are really elegant solutions. Quite easily adaptable to other languages as well.
+</p>
+<pre style="background-color: #eee;">
+const v4 = () => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.trunc(Math.random() * 16);
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+const v7 = () => {
+  return 'tttttttt-tttt-7xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.trunc(Math.random() * 16);
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  }).replace(/^[t]{8}-[t]{4}/, function() {
+    const unixtimestamp = Date.now().toString(16).padStart(12, '0');
+    return unixtimestamp.slice(0, 8) + '-' + unixtimestamp.slice(8);
+  });
+}
+
+console.log(v4());
+console.log(v7());
+
+</pre>
+<h3>SQL Lite</h3>
+<a href="https://gist.github.com/fabiolimace">Julkaisut myös SQLLite version</a>:
+<pre>
+select printf('%08x', ((strftime('%s') * 1000) >> 16)) || '-' ||
+       printf('%04x', ((strftime('%s') * 1000) + ((strftime('%f') * 1000) % 1000)) & 0xffff) || '-' ||
+       printf('%04x', 0x7000 + abs(random()) % 0x0fff) || '-' ||
+       printf('%04x', 0x8000 + abs(random()) % 0x3fff) || '-' ||
+       printf('%012x', abs(random()) >> 16);
+</pre>
+
+<h3>Go</h3>
+<a href="https://github.com/kshji/go/tree/master/uuid7">Jukka Inkeri version command using Go</a> 
+=commandline version to generate uuidv7
+<br>
+<br>
+<a href="https://github.com/kshji/go/tree/master/uuidv7server">Microservice, return uuidv7</a>
+<br>
+<br>
+
+<h3>Postgres</h3>
+<ul>
+<li><a href="https://pgxn.org/dist/pg_uuidv7/">pg_uuidv7 extension</a></li>
+<li><a href="https://gist.github.com/kjmph/5bd772b2c2df145aa645b837da7eca74">uuidv7 functions</a></li>
+</ul>
+
+I use this version: It was fastest in my benchmarks using PG 16.
+
+<h4>Generate uuidv7</h4>
+<pre style="background-color: #eee;">
+CREATE OR REPLACE FUNCTION public.uuid_generate_v7()
+RETURNS uuid
+AS $$
+  -- use random v4 uuid as starting point (which has the same variant we need)
+  -- then overlay timestamp
+  -- then set version 7 by flipping the 2 and 1 bit in the version 4 string
+select encode(
+    set_bit(
+      set_bit(
+        overlay(uuid_send(gen_random_uuid())
+                placing substring(int8send(floor(extract(epoch from clock_timestamp()) * 1000)::bigint) from 3)
+                from 1 for 6
+        ),
+        52, 1
+      ),
+      53, 1
+    ),
+    'hex')::uuid;
+$$
+language SQL
+volatile;
+</pre>
+
+<h3>C-language, uuidv4</h4>
+<a href="https://gist.github.com/kvelakur/9069c9896577c3040030">Kvelakur C using SSL Rand</a>
+
+<h4>Get timestamp from uuidv7</h4>
+
+<pre style="background-color: #eee;">
+-- aikaleima uuid:stä
+CREATE OR REPLACE FUNCTION public.timestamp_from_uuid_v7(_uuid uuid)
+RETURNS timestamp without time zone
+LANGUAGE sql
+IMMUTABLE PARALLEL SAFE STRICT LEAKPROOF
+AS $$
+  SELECT to_timestamp(('x0000' || substr(_uuid::text, 1, 8) || substr(_uuid::text, 10, 4))::bit(64)::bigint::numeric / 1000);
+$$
+;
+</pre>
+
+
+<h3>Test</h3>
+<button id="b1">uuidv7</button><br>
+<pre id="log">
+
+</pre>
+</body>
+<script>
+
+const uuidv7 = () => {
+  return 'tttttttt-tttt-7xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    console.log('Random:',Math.random())
+    const r = Math.trunc(Math.random() * 16);
+    console.log('r:',r)
+	const z=(r  & 0x3|0x8)
+    console.log('c:',c)
+    console.log('z:',r)
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    console.log('v:',v)
+    console.log('v str:',v.toString(16))
+    return v.toString(16);
+  }).replace(/^[t]{8}-[t]{4}/, function() {
+	console.log('DAte.now:', Date.now())
+	console.log('DAte.now 16:', Date.now().toString(16))
+	console.log('DAte.now 16 pad:', Date.now().toString(16).padStart(12,'0'))
+    const unixtimestamp = Date.now().toString(16).padStart(12, '0');
+    return unixtimestamp.slice(0, 8) + '-' + unixtimestamp.slice(8);
+  });
+}
+
+//console.log('uuidv7:',uuidv7())
+
+const b1 = document.querySelector('#b1');
+const log = document.querySelector('#log');
+
+
+b1.addEventListener('click', () => {
+  log.innerHTML += 'uuidv7():' + uuidv7() + '\n'
+});
+
+
+
+
+</script>
+</html>
