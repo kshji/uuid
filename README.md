@@ -14,7 +14,7 @@ It can be used for sorting just like SERIAL type keys.
   * [Good bye integers, welcome uuids](https://buildkite.com/blog/goodbye-integers-hello-uuids)
   * [Kvelakur C-language version using SSL Rand -uuidv4](https://gist.github.com/kvelakur/9069c9896577c3040030)
 
-## Ksh shellscript uuidv7
+## Ksh / Bash shellscript uuidv7
 
   * [My ksh shellscript to generate uuidV7](https://github.com/kshji/ksh/blob/master/Sh/uuidv7.sh)
 
@@ -37,6 +37,10 @@ echo ${uuid:0:8}-${uuid:8:4}-4${uuid:12:3}-${uuid:16:4}-${uuid:20:12}
 ## Postgresql uuidv7
 
   * [My Postgresql function to generate uuidV7](https://github.com/kshji/postgresql)
+
+## SqliLite uuidv7
+
+  * [SQLLite](https://gist.github.com/fabiolimace/e3c3d354d1afe0b3175f65be2d962523)
 
 ## Go uuidv7
 
